@@ -31,9 +31,7 @@ int main(void)
 
     // uniform locations (we only need the texture sampler here)
     int locCells = GetShaderLocation(shader, "uCells");
-
-    // bind texture to shader (bind texture unit 0)
-    SetShaderValueTexture(shader, locCells, cellsTex);
+    // ensure sampler points to texture unit 0 (set once is OK, but set again before draw)
     int texUnit = 0;
     SetShaderValue(shader, locCells, &texUnit, SHADER_UNIFORM_INT);
 
@@ -68,8 +66,9 @@ int main(void)
             // rebind to shader (raylib convenience)
             SetShaderValueTexture(shader, locCells, cellsTex);
         }
-        // ensure shader sees the latest texture binding each frame
+        // rebind to shader each frame (safe across raylib builds)
         SetShaderValueTexture(shader, locCells, cellsTex);
+        SetShaderValue(shader, locCells, &texUnit, SHADER_UNIFORM_INT); // re-set sampler int
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
@@ -81,7 +80,7 @@ int main(void)
         DrawTexturePro(cellsTex, src, dest, (Vector2){0, 0}, 0.0f, WHITE);
         EndShaderMode();
 
-        // debug: show the raw small cell texture (upscaled) so you can compare
+        // debug preview
         DrawTextureEx(cellsTex, (Vector2){10, 60}, 0.0f, 10.0f, WHITE);
 
         DrawText("Debug: shader now just renders the input cell texture", 10, 10, 14, DARKGRAY);
